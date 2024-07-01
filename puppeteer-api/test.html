@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<body>
+<input type="text" id="urlInput" placeholder="Enter URL to scrape">
+<button onclick="scrape()">Scrape</button>
+<div id="result"></div>
+
+<script>
+function scrape() {
+    const url = document.getElementById('urlInput').value;
+    fetch('http://localhost:3000/scrape', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({url: url}),
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('result').innerText = JSON.stringify(data, null, 2);
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+    });
+}
+</script>
+</body>
+</html>
