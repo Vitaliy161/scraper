@@ -17,16 +17,6 @@ let browser;
   });
 })();
 
-// Helper function to clean text
-function cleanText(text) {
-  return text
-    .replace(/<[^>]*>/g, '') // Remove HTML tags
-    .replace(/\s+/g, ' ')    // Replace multiple spaces with single space
-    .replace(/^\s+|\s+$/g, '') // Remove leading/trailing whitespace
-    .replace(/\n/g, ' ')     // Replace newlines with spaces
-    .trim();                 // Trim the result
-}
-
 app.post('/scrape', async (req, res) => {
   const { url } = req.body;
 
@@ -36,7 +26,7 @@ app.post('/scrape', async (req, res) => {
 
   try {
     const page = await browser.newPage();
-    
+
     // Intercept and block CSS, images, and fonts
     await page.setRequestInterception(true);
     page.on('request', (request) => {
@@ -46,8 +36,9 @@ app.post('/scrape', async (req, res) => {
         request.continue();
       }
     });
-    
-    //await page.goto(url, { waitUntil: 'networkidle0' });
+
+    // Disable JavaScript (optional, but can speed things up further)
+    await page.setJavaScriptEnabled(false);
 
     await page.goto(url, { waitUntil: 'domcontentloaded' });
 
@@ -57,9 +48,6 @@ app.post('/scrape', async (req, res) => {
     // Scrape all text from the body
     const bodyText = await page.evaluate(() => document.body.innerText);
 
-    // Clean the body text
-    const cleanBodyText = cleanText(bodyText);
-    
     // Scrape metadata
     const metadata = await page.evaluate(() => {
       const metaTags = document.getElementsByTagName('meta');
@@ -72,11 +60,6 @@ app.post('/scrape', async (req, res) => {
       }
       return data;
     });
-
-    // Clean metadata values
-    for (let key in metadata) {
-      metadata[key] = cleanText(metadata[key]);
-    }
 
     await page.close();
 
